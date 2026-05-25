@@ -1,0 +1,58 @@
+services:
+  postgres_dwh:
+    image: postgres:15-alpine
+    container_name: petstore_dwh_db
+    environment:
+      POSTGRES_USER: dw_admin
+      POSTGRES_PASSWORD: dw_password
+      POSTGRES_DB: snowflake_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./исходные данные:/data_csv
+      - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      - spark_network
+
+  clickhouse_db:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    container_name: clickhouse
+    environment:
+      CLICKHOUSE_USER: ch_admin
+      CLICKHOUSE_PASSWORD: ch_password
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    networks:
+      - spark_network
+
+  spark-master:
+    image: bitnami/spark:3.5.0
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./spark_apps:/opt/spark_apps
+      - ./jars:/opt/jars
+    networks:
+      - spark_network
+
+  spark-worker:
+    image: bitnami/spark:3.5.0
+    container_name: spark-worker
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+    volumes:
+      - ./spark_apps:/opt/spark_apps
+      - ./jars:/opt/jars
+    networks:
+      - spark_network
+
+networks:
+  spark_network:
+    driver: bridge
