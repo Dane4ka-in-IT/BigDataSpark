@@ -60,3 +60,6 @@ Dog Food        Food    283588.88       6196    3
 Cat Toy Cage    280212.67       6067    2.99
 Bird Cage       Cage    279530.37       6234    3
 ```
+
+Успешний запуск Spark UI:
+![Успешный запуск Spark UI](screens/spark_ui.png)
